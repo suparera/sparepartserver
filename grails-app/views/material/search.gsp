@@ -33,15 +33,15 @@
 			<table>
 			<thead>
 					<tr>
-						<g:sortableColumn property="id" title="${message(code: 'material.id.label', default: 'Mat No.')}" />
+						<g:sortableColumn property="id" title="${message(code: 'material.id.label', default: 'Mat No.')}" params="${[searchText:searchText]}" />
 						
 						<th >Image</th>
 					
-						<g:sortableColumn property="Location" title="${message(code: 'material.location.label', default: 'Location')}" />
+						<g:sortableColumn property="location" title="${message(code: 'material.location.label', default: 'Location')}" params="${[searchText:searchText]}" />
 					
-						<g:sortableColumn property="descr" title="${message(code: 'material.descr.label', default: 'Descr')}" />
+						<g:sortableColumn property="descr" title="${message(code: 'material.descr.label', default: 'Descr')}" params="${[searchText:searchText]}"/>
 					
-						<g:sortableColumn property="poText" title="${message(code: 'material.poText.label', default: 'Po Text')}" />
+						<th>PO Text</th>
 					
 					</tr>
 				</thead>

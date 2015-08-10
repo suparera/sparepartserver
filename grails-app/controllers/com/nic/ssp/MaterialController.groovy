@@ -37,9 +37,9 @@ class MaterialController {
 
         params.max = Math.min(max ?: 10, 100)
 
-        def allMatList = Material.findAllByIdLikeOrDescrLikeOrPoTextLike("%${searchText}%", "%${searchText}%", "%${searchText}%")
+        def allMatList = Material.findAllByIdLikeOrDescrLikeOrPoTextLikeOrLocationLike("%${searchText}%", "%${searchText}%", "%${searchText}%", "%${searchText}%")
 
-        def matList = Material.findAllByIdLikeOrDescrLikeOrPoTextLike("%${searchText}%", "%${searchText}%", "%${searchText}%",params)
+        def matList = Material.findAllByIdLikeOrDescrLikeOrPoTextLikeOrLocationLike("%${searchText}%", "%${searchText}%", "%${searchText}%", "%${searchText}%",params)
         println "2 case searchText exist=${searchText}, size = ${matList.size()}"
         respond matList.asList(), model:[
                 materialInstanceCount: allMatList.size()
@@ -54,7 +54,7 @@ class MaterialController {
 			kind = 'MaterialList'
 			materials = array {
 				for (m in results){
-					material id:m.id, descr: m.descr, category:m.category, min:m.min, max:m.max, location:m.location, employee:m.employee?.name, haveImage1:m.haveImage1, haveImage2:m.haveImage2, haveImage3:m.haveImage3
+					material id:m.id, descr: m.descr, category:m.category, min:m.min, max:m.max, location:m.location, employee:m.employee?.name, haveImage1:m.haveImage1, haveImage2:m.haveImage2, haveImage3:m.haveImage3,haveImage4:m.haveImage4
 				}
 			}
 		}
@@ -64,18 +64,18 @@ class MaterialController {
         println "m=${m}"
         render(contentType:"text/json") {
             kind='MaterialJson'
-            material id:m.id, descr: m.descr, category:m.category, min:m.min, max:m.max, location:m.location, employee:m.employee?.name, haveImage1:m.haveImage1, haveImage2:m.haveImage2, haveImage3:m.haveImage3
+            material id:m.id, descr: m.descr, category:m.category, min:m.min, max:m.max, location:m.location, employee:m.employee?.name, haveImage1:m.haveImage1, haveImage2:m.haveImage2, haveImage3:m.haveImage3, haveImage4:m.haveImage4
         }
     }
 
     /** used by android
-     *
+     *2015-08-05 Add Search by Location Like
      * @return material list in Json format
      */
     def findAllByIdLikeOrDescrLike(){
         def searchText  = "%${params.searchText}%"
 
-        def results = Material.findAllByIdLikeOrDescrLikeOrPoTextLike(searchText, searchText, searchText)
+        def results = Material.findAllByIdLikeOrDescrLikeOrPoTextLikeOrLocationLike(searchText, searchText, searchText, searchText)
         println("searchText=${searchText}, result size = ${results.size()}")
         render(contentType:"application/json") {
             kind = 'MaterialList'
@@ -111,20 +111,38 @@ class MaterialController {
 
                 if (f != null) {
                     def file = new File("${realPath}/images/${matNo}.jpg")
+                    if(file.exists()) {
+                        file.delete()
+                    }
                     material.setHaveImage1(true)
                     def thumbnailFile = new File("${realPath}/thumbnails/${matNo}-tn.jpg")
+                    if(thumbnailFile.exists()) {
+                        thumbnailFile.delete()
+                    }
                     f.transferTo(file)
 
                     // find orientation
+
+                    // create image1Builder to change image from Oversize image upload from android
+                    // for  1. can display (4096*4096)
+                    //      2. fast download to show
+
                     Metadata metadata = ImageMetadataReader.readMetadata(file)
                     def dimension = getDimension(file)
+
+                    // find scale for image1Main
+                    def image1Scale = 1200.0 / (dimension.width > dimension.height ?  dimension.width : dimension.height)
+                    def image1Builder = Thumbnails.of(file).scale(image1Scale)
+
                     def thumbnailScale = (dimension.width > dimension.height ? 48 / dimension.width : dimension.height)
                     ExifIFD0Directory exif = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class)
                     if (exif != null) {
                         int orientation = exif.getInt(ExifIFD0Directory.TAG_ORIENTATION)
                         if (orientation == 6) {
-                            Thumbnails.of(file).scale(1.0).rotate(0).toFile(file)
+                            image1Builder.rotate(0)
                         }
+                        image1Builder.toFile(file)
+
                         Thumbnails.of(file).scale(thumbnailScale).toFile(thumbnailFile)
                     }
                 }
@@ -137,6 +155,9 @@ class MaterialController {
 
                 if (f != null) {
                     def file = new File("${realPath}/images/${matNo}-image2.jpg")
+                    if(file.exists()){
+                        file.delete()
+                    }
                     f.transferTo(file)
                     material.setHaveImage2(true)
                     // find orientation

@@ -23,6 +23,7 @@ class Material {
 	boolean		haveImage1
 	boolean 	haveImage2
 	boolean 	haveImage3
+	boolean 	haveImage4
 
 
 	static mapping = {
@@ -38,6 +39,7 @@ class Material {
 		haveImage1 column:'haveImage1'
 		haveImage2 column:'haveImage2'
 		haveImage3 column:'haveImage3'
+		haveImage4 column:'haveImage4'
 	}
 
 	static constraints = {
@@ -62,6 +64,7 @@ class Material {
 		haveImage1 nullable:false
 		haveImage2 nullable:false
 		haveImage3 nullable:false
+		haveImage4 nullable:false
 	}
 
 }
